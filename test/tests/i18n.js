@@ -417,6 +417,72 @@ module.exports = function() {
 			done();
 		});
 
+		it('should store i18n fields in populated fields', function(done) {
+			var Model = mongoose.model('Reference', helper.createI18nSchema().plugin(mongooseI18n, {
+				locales: ['en', 'de']
+			}));
+
+			var ModelWithReference = mongoose.model('ModelWithReference', helper.createI18nWithReferenceSchema().plugin(mongooseI18n, {
+				locales: ['en', 'de']
+			}));
+
+			var model = new Model({
+				name: {
+					en: 'hello',
+					de: 'hallo'
+				}
+			});
+
+			model.save(function(err, model) {
+					var modelWithReference = new ModelWithReference({
+						name: {
+							en: 'hello',
+							de: 'hallo'
+						},
+						reference: model._id		
+					});
+					modelWithReference.save(function(err, modelWithReference) {
+						model.name.en.should.equal('hello');
+						model.name.de.should.equal('hallo');
+			
+						var json = Model.schema.methods.toJSONLocalized(model, 'de');
+						json.name.en.should.equal('hello');
+						json.name.de.should.equal('hallo');
+						json.name.localized.should.equal('hallo');
+			
+						var obj = Model.schema.methods.toObjectLocalized(model, 'en');
+						obj.name.en.should.equal('hello');
+						obj.name.de.should.equal('hallo');
+						obj.name.localized.should.equal('hello');
+
+						modelWithReference.populate('reference', function(err, doc) {
+							doc.name.en.should.equal('hello');
+							doc.name.de.should.equal('hallo');
+				
+							var json = Model.schema.methods.toJSONLocalized(doc, 'de');
+							json.name.en.should.equal('hello');
+							json.name.de.should.equal('hallo');
+							json.name.localized.should.equal('hallo');
+							json.reference.name.en.should.equal('hello');
+							json.reference.name.de.should.equal('hallo');
+							json.reference.name.localized.should.equal('hallo');
+				
+							var obj = Model.schema.methods.toObjectLocalized(doc, 'en');
+							obj.name.en.should.equal('hello');
+							obj.name.de.should.equal('hallo');
+							obj.name.localized.should.equal('hello');
+							obj.reference.name.en.should.equal('hello');
+							obj.reference.name.de.should.equal('hallo');
+							obj.reference.name.localized.should.equal('hello');
+							
+							done();
+						});
+
+					});
+			});
+
+		});
+
 	});
 
 };

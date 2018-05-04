@@ -38,6 +38,19 @@ module.exports = {
 		});
 	},
 
+	createI18nWithReferenceSchema: function() {
+		return new mongoose.Schema({
+			name: {
+				type: String,
+				i18n: true
+			},
+			reference: {
+				type: mongoose.Schema.Types.ObjectId,
+    		ref: 'Reference'
+			}
+		});
+	},
+
 	createI18nNestedObjectSchema: function() {
 		return new mongoose.Schema({
 			nested: {

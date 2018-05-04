@@ -98,11 +98,12 @@ function addLocalized(o) {
   var _obj = o.toJSON ? o.obj.toJSON() : o.obj.toObject(),
     val, defVal, _i18n_paths = [];
   _i18n_paths = getI18nCapsulePaths('', o.obj.schema);
-  for (const key in o.obj.$__.populated) {
+  for (var key in o.obj.$__.populated) {
     if (o.obj.$__.populated.hasOwnProperty(key)) {
-      const element = o.obj.$__.populated[key];
-      if (element.options.model) {
-        _i18n_paths = getI18nCapsulePaths(key, element.options.model.schema).concat(_i18n_paths);
+      var element = o.obj.$__.populated[key];
+      var model = element.options.model || element.options.Model;
+      if (model) {
+        _i18n_paths = getI18nCapsulePaths(key, model.schema).concat(_i18n_paths);
       }
     }
   }
