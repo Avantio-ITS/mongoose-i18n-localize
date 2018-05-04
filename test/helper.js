@@ -6,7 +6,7 @@ var mongooseI18n = require('../index');
 
 module.exports = {
 
-	afterEach: function(done) {
+	afterEach: function (done) {
 		for (var key in mongoose.connection.collections) {
 			mongoose.connection.collections[key].remove();
 		}
@@ -17,7 +17,7 @@ module.exports = {
 		done();
 	},
 
-	createI18nSchema: function() {
+	createI18nSchema: function () {
 		return new mongoose.Schema({
 			name: {
 				type: String,
@@ -29,16 +29,16 @@ module.exports = {
 			},
 			number: {
 				type: Number,
-				i18n: true				
+				i18n: true
 			},
 			bool: {
 				type: Boolean,
-				i18n: true	
+				i18n: true
 			}
 		});
 	},
 
-	createI18nWithReferenceSchema: function() {
+	createI18nWithReferenceSchema: function () {
 		return new mongoose.Schema({
 			name: {
 				type: String,
@@ -46,12 +46,12 @@ module.exports = {
 			},
 			reference: {
 				type: mongoose.Schema.Types.ObjectId,
-    		ref: 'Reference'
+				ref: 'Reference'
 			}
 		});
 	},
 
-	createI18nNestedObjectSchema: function() {
+	createI18nNestedObjectSchema: function () {
 		return new mongoose.Schema({
 			nested: {
 				name: {
@@ -62,7 +62,7 @@ module.exports = {
 		});
 	},
 
-	createI18nNestedObjectSchemaWithMultipleFields: function() {
+	createI18nNestedObjectSchemaWithMultipleFields: function () {
 		return new mongoose.Schema({
 			nested: {
 				name: {
@@ -77,7 +77,7 @@ module.exports = {
 		});
 	},
 
-	createI18nNestedArraySchema: function() {
+	createI18nNestedArraySchema: function () {
 		return new mongoose.Schema({
 			nested: [{
 				name: {
@@ -88,7 +88,7 @@ module.exports = {
 		});
 	},
 
-	createI18nNestedNestedArraySchema: function() {
+	createI18nNestedNestedArraySchema: function () {
 		return new mongoose.Schema({
 			nested: [{
 				nested: [{
@@ -101,7 +101,7 @@ module.exports = {
 		});
 	},
 
-	createI18nNestedSchema: function() {
+	createI18nNestedSchema: function () {
 		var nestedSchema = new mongoose.Schema({
 			name: {
 				type: String,
@@ -118,7 +118,7 @@ module.exports = {
 		});
 	},
 
-	createI18nNestedSchemaArray: function() {
+	createI18nNestedSchemaArray: function () {
 		var nestedSchema = new mongoose.Schema({
 			name: {
 				type: String,
@@ -135,7 +135,7 @@ module.exports = {
 		});
 	},
 
-	createI18nValidationSchema: function() {
+	createI18nValidationSchema: function () {
 		return new mongoose.Schema({
 			name: {
 				type: String,
@@ -144,7 +144,7 @@ module.exports = {
 				required: true,
 				minlength: 3,
 				validate: {
-					validator: function(v) {
+					validator: function (v) {
 						return /^[A-Z]+$/i.test(v);
 					},
 					message: 'Custom validator failed.'
