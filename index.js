@@ -97,8 +97,8 @@ function localyzeRecursive(obj, i18nCapsulePathArr, o) {
 function addLocalized(o) {
 	var _obj = o.toJSON ? o.obj.toJSON() : o.obj.toObject(),
 		val, defVal, _i18n_paths = [];
-	_i18n_paths = getI18nCapsulePaths('', o.obj.schema);
-	for (const key in o.obj.$__.populated) {
+  _i18n_paths = getI18nCapsulePaths('', o.obj.schema);
+  for (const key in o.obj.$__.populated) {
     if (o.obj.$__.populated.hasOwnProperty(key)) {
       const element = o.obj.$__.populated[key];
       if (element.options.model) {
