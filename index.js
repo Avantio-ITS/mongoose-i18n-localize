@@ -98,6 +98,14 @@ function addLocalized(o) {
 	var _obj = o.toJSON ? o.obj.toJSON() : o.obj.toObject(),
 		val, defVal, _i18n_paths = [];
 	_i18n_paths = getI18nCapsulePaths('', o.obj.schema);
+	for (const key in o.obj.$__.populated) {
+    if (o.obj.$__.populated.hasOwnProperty(key)) {
+      const element = o.obj.$__.populated[key];
+      if (element.options.model) {
+        _i18n_paths = getI18nCapsulePaths(key, element.options.model.schema).concat(_i18n_paths);
+      }
+    }
+  }
 	_i18n_paths.forEach(function (i18nCapsulePath) {
 		var i18nCapsulePathArr = i18nCapsulePath.split('.');
 		localyzeRecursive(_obj, i18nCapsulePathArr, o);
