@@ -31,6 +31,7 @@ function addLocales(prePath, pathname, schema, options_locales) {
     delete(config.i18n);
     config._i18n = true;
     schema.remove(pathname);
+    schema.nested[pathname] = true;
 
     options_locales.forEach(function (locale) {
       schema.path(pathname + '.' + locale, config);
