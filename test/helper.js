@@ -8,7 +8,7 @@ module.exports = {
 
 	afterEach: function (done) {
 		for (var key in mongoose.connection.collections) {
-			mongoose.connection.collections[key].remove();
+			mongoose.connection.collections[key].deleteMany();
 		}
 
 		mongoose.models = {};

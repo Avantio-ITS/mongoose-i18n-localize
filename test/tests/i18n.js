@@ -5,7 +5,7 @@ var mongoose = require('mongoose'),
 	should = require('should'),
 	helper = require('../helper'),
 	mongooseI18n = require('../../index');
-	
+
 if (global.Promise) {
 	mongoose.Promise = global.Promise;
 }
@@ -443,72 +443,148 @@ module.exports = function () {
 			done();
 		});
 
-		it('should store i18n fields in populated fields', function (done) {
-			var Model = mongoose.model('Reference', helper.createI18nSchema().plugin(mongooseI18n, {
+		it('should store i18n fields in populated fields', async () => {
+			const Model = mongoose.model('Reference', helper.createI18nSchema().plugin(mongooseI18n, {
 				locales: ['en', 'de']
 			}));
 
-			var ModelWithReference = mongoose.model('ModelWithReference', helper.createI18nWithReferenceSchema().plugin(mongooseI18n, {
+			const ModelWithReference = mongoose.model('ModelWithReference', helper.createI18nWithReferenceSchema().plugin(mongooseI18n, {
 				locales: ['en', 'de']
 			}));
 
-			var model = new Model({
+			const model = await new Model({
 				name: {
 					en: 'hello',
 					de: 'hallo'
 				}
+			}).save();
+
+
+			const modelWithReference = await new ModelWithReference({
+				name: {
+					en: 'hello',
+					de: 'hallo'
+				},
+				reference: model._id
+			}).save();
+
+			model.name.en.should.equal('hello');
+			model.name.de.should.equal('hallo');
+
+			const jsonLocalizedModel = Model.schema.methods.toJSONLocalized(model, 'de');
+			jsonLocalizedModel.name.en.should.equal('hello');
+			jsonLocalizedModel.name.de.should.equal('hallo');
+			jsonLocalizedModel.name.localized.should.equal('hallo');
+
+			const objLocalizedModel = Model.schema.methods.toObjectLocalized(model, 'en');
+			objLocalizedModel.name.en.should.equal('hello');
+			objLocalizedModel.name.de.should.equal('hallo');
+			objLocalizedModel.name.localized.should.equal('hello');
+
+			modelWithReference.populate('reference', (err, population) => {
+				population.name.en.should.equal('hello');
+				population.name.de.should.equal('hallo');
+
+				const jsonLocalizedPopulated = Model.schema.methods.toJSONLocalized(population, 'de');
+				jsonLocalizedPopulated.name.en.should.equal('hello');
+				jsonLocalizedPopulated.name.de.should.equal('hallo');
+				jsonLocalizedPopulated.name.localized.should.equal('hallo');
+				jsonLocalizedPopulated.reference.name.en.should.equal('hello');
+				jsonLocalizedPopulated.reference.name.de.should.equal('hallo');
+				jsonLocalizedPopulated.reference.name.localized.should.equal('hallo');
+
+				const objLocalizedPopulated = Model.schema.methods.toObjectLocalized(population, 'en');
+				objLocalizedPopulated.name.en.should.equal('hello');
+				objLocalizedPopulated.name.de.should.equal('hallo');
+				objLocalizedPopulated.name.localized.should.equal('hello');
+				objLocalizedPopulated.reference.name.en.should.equal('hello');
+				objLocalizedPopulated.reference.name.de.should.equal('hallo');
+				objLocalizedPopulated.reference.name.localized.should.equal('hello');
 			});
-
-			model.save(function (err, model) {
-				var modelWithReference = new ModelWithReference({
-					name: {
-						en: 'hello',
-						de: 'hallo'
-					},
-					reference: model._id
-				});
-				modelWithReference.save(function (err, modelWithReference) {
-					model.name.en.should.equal('hello');
-					model.name.de.should.equal('hallo');
-
-					var json = Model.schema.methods.toJSONLocalized(model, 'de');
-					json.name.en.should.equal('hello');
-					json.name.de.should.equal('hallo');
-					json.name.localized.should.equal('hallo');
-
-					var obj = Model.schema.methods.toObjectLocalized(model, 'en');
-					obj.name.en.should.equal('hello');
-					obj.name.de.should.equal('hallo');
-					obj.name.localized.should.equal('hello');
-
-					modelWithReference.populate('reference', function (err, doc) {
-						doc.name.en.should.equal('hello');
-						doc.name.de.should.equal('hallo');
-
-						var json = Model.schema.methods.toJSONLocalized(doc, 'de');
-						json.name.en.should.equal('hello');
-						json.name.de.should.equal('hallo');
-						json.name.localized.should.equal('hallo');
-						json.reference.name.en.should.equal('hello');
-						json.reference.name.de.should.equal('hallo');
-						json.reference.name.localized.should.equal('hallo');
-
-						var obj = Model.schema.methods.toObjectLocalized(doc, 'en');
-						obj.name.en.should.equal('hello');
-						obj.name.de.should.equal('hallo');
-						obj.name.localized.should.equal('hello');
-						obj.reference.name.en.should.equal('hello');
-						obj.reference.name.de.should.equal('hallo');
-						obj.reference.name.localized.should.equal('hello');
-
-						done();
-					});
-
-				});
-			});
-
 		});
 
-	});
+		it('should create and update i18n fields', async () => {
+			const def = {
+				title: {
+					type: String,
+					i18n: true
+				},
+				test: {
+					b: String,
+					a: String
+				},
+				deep: {
+					flag: Boolean,
+					moreDeep: {
+						deepTitle: {
+							type: String,
+							i18n: true
+						}
+					}
+				}
+			};
 
+			const schema = new mongoose.Schema(def);
+
+			schema.plugin(mongooseI18n, {
+				locales: [
+					'es_ES',
+					'en_GB'
+				]
+			})
+
+			const Model = mongoose.model('Localized', schema);
+
+			const model = {
+				title: {
+					es_ES: 'title es_ES',
+					en_GB: 'title en_GB'
+				},
+				test: {
+					a: 'b',
+					b: 'a'
+				},
+				deep: {
+					flag: false,
+					moreDeep: {
+						deepTitle: {
+							es_ES: 'deep title es_ES',
+							en_GB: 'deep title en_GB'
+						}
+					}
+				}
+			};
+
+			const { _id } = await new Model(model).save();
+
+			const updatedModel = Model.findOneAndUpdate({ _id }, {
+				title: {
+					es_ES: 'updated es_ES',
+					en_GB: 'updated en_GB'
+				},
+				test: {
+					a: 'a',
+					b: 'b'
+				},
+				deep: {
+					flag: true,
+					moreDeep: {
+						deepTitle: {
+							es_ES: 'deep updated es_ES',
+							en_GB: 'deep updated en_GB'
+						}
+					}
+				}
+			}, {
+					new: true,
+					upsert: true
+				}, (err, updatedModel) => {
+					updatedModel.title.es_ES.should.equal('updated es_ES');
+					updatedModel.title.en_GB.should.equal('updated en_GB');
+					updatedModel.deep.flag.should.equal(true);
+					updatedModel.deep.moreDeep.deepTitle.es_ES.should.equal('deep updated es_ES');
+					updatedModel.deep.moreDeep.deepTitle.en_GB.should.equal('deep updated en_GB');
+				});
+		});
+	});
 };
